@@ -1,0 +1,177 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>concertsfinder</title>
+    <style>
+      :root {
+        --bg: #000000; --fg: #ffffff; --muted: #b3b3b3;
+        --card: #121212; --card-border: #232323; --accent: #1db954;
+      }
+      * { box-sizing: border-box; }
+      html, body { height: 100%; }
+      body { margin: 0; background: var(--bg); color: var(--fg);
+        font-family: system-ui,-apple-system,Segoe UI,Roboto,Inter,sans-serif; }
+      .header { padding:16px 20px; border-bottom:1px solid var(--card-border);
+        font-weight:700; letter-spacing:.5px; text-transform:lowercase; }
+      .app { display:flex; min-height:calc(100vh - 57px); }
+      .sidebar { width:25%; border-right:1px solid var(--card-border); padding:16px; }
+      .main { width:75%; padding:16px 20px; }
+      .controls { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:16px; }
+      label { font-size:12px; color:var(--muted); }
+      input { background:#0f0f0f; color:var(--fg); border:1px solid var(--card-border);
+        border-radius:8px; padding:8px 10px; outline:none; width:100px; }
+      button { padding:10px 14px; border:none; border-radius:999px; background:var(--accent);
+        color:#000; font-weight:700; cursor:pointer; }
+      button.secondary { background:#2a2a2a; color:var(--fg); }
+      .section-title { margin:8px 0 12px; font-size:14px; color:var(--muted);
+        text-transform:uppercase; letter-spacing:.08em; }
+      .list { display:grid; gap:10px; }
+      .card { background:var(--card); border:1px solid var(--card-border);
+        border-radius:12px; padding:12px; }
+      .muted { color:var(--muted); font-size:12px; }
+      .event-title { font-weight:700; }
+      .event-meta { color:var(--muted); font-size:12px; }
+      .row { display:flex; gap:8px; align-items:center; }
+      .spacer { flex:1; }
+
+      /* New: inline layout for event header + button on the right */
+      .event-head { display:flex; align-items:center; gap:12px; }
+      .event-text { display:flex; flex-direction:column; gap:2px; flex:1; }
+      .event-actions { margin-left:auto; }
+      .btn-link { text-decoration:none; }
+    </style>
+  </head>
+  <body>
+    <div class="header">concertsfinder</div>
+
+    <div class="app">
+      <aside class="sidebar">
+        <div class="section-title">Your Artists</div>
+        <p class="muted" id="artists-hint">Login to load your Top &amp; Followed artists.</p>
+        <div class="list" id="artists"></div>
+        <div style="margin-top:16px;">
+          <a href="/login" class="button"><button class="secondary">Login with Spotify</button></a>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="section-title">Find Concerts</div>
+
+        <div class="controls">
+          <button id="locate">Use My Location</button>
+          <input id="lat" placeholder="Lat" readonly />
+          <input id="lon" placeholder="Lon" readonly />
+          <input id="radius" value="50" />
+          <button id="go">Find Events</button>
+        </div>
+
+        <div class="muted" id="count"></div>
+        <div class="list" id="events"></div>
+      </main>
+    </div>
+
+    <script>
+      async function fetchJSON(url) {
+        const r = await fetch(url);
+        if (!r.ok) throw new Error(await r.text());
+        return r.json();
+      }
+
+      function capitalizeWords(arr) {
+        return (arr || []).map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(", ");
+      }
+
+      async function loadArtists() {
+        const box = document.getElementById("artists");
+        const hint = document.getElementById("artists-hint");
+        box.innerHTML = "";
+        try {
+          const { artists } = await fetchJSON("/api/me/artists");
+          hint.style.display = "none";
+          (artists || []).forEach(a => {
+            const el = document.createElement("div");
+            el.className = "card";
+            el.innerHTML = `
+              <div style="font-weight:700">${a.name}</div>
+              <div class="muted">${capitalizeWords(a.sources)}</div>
+            `;
+            box.appendChild(el);
+          });
+          if (!artists || artists.length === 0) {
+            hint.style.display = "";
+            hint.textContent = "No artists found. Try listening more or follow some artists on Spotify.";
+          }
+        } catch {
+          hint.style.display = "";
+          hint.textContent = "Login first, then refresh this page.";
+        }
+      }
+
+      function useMyLocation() {
+        if (!navigator.geolocation) {
+          alert("Geolocation is not supported in this browser.");
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(
+          pos => {
+            document.getElementById("lat").value = pos.coords.latitude.toFixed(5);
+            document.getElementById("lon").value = pos.coords.longitude.toFixed(5);
+          },
+          err => alert("Failed to get location: " + err.message)
+        );
+      }
+
+      async function findEvents() {
+        const lat = document.getElementById("lat").value;
+        const lon = document.getElementById("lon").value;
+        const radius = document.getElementById("radius").value;
+        if (!lat || !lon) {
+          alert("Click 'Use My Location' first!");
+          return;
+        }
+        const url = `/api/events?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}&radius=${encodeURIComponent(radius)}`;
+        const data = await fetchJSON(url);
+
+        // Client-side guard: filter out any past events just in case
+        const now = Date.now();
+        const futureEvents = (data.events || []).filter(e => {
+          if (!e.start_utc) return true; // keep if TBA
+          const t = Date.parse(e.start_utc);
+          return isFinite(t) ? t >= now : true;
+        });
+
+        document.getElementById("count").textContent = `${futureEvents.length} events`;
+        const box = document.getElementById("events");
+        box.innerHTML = "";
+
+        futureEvents.forEach(e => {
+          const when = e.start_utc ? new Date(e.start_utc).toLocaleString() : "TBA";
+          const price = typeof e.min_price === "number" ? ` • From ${e.min_price} ${e.currency || ""}` : "";
+
+          const el = document.createElement("div");
+          el.className = "card";
+          el.innerHTML = `
+            <div class="event-head">
+              <div class="event-text">
+                <div class="event-title">${e.event_name}</div>
+                <div>${e.venue_name || ""}${e.venue_name ? " • " : ""}${e.city || ""}</div>
+                <div class="event-meta">${when}${price}</div>
+                <div class="event-meta">score: ${e.score} (${(e.reason||[]).join(", ")})</div>
+              </div>
+              <div class="event-actions">
+                ${e.url ? `<a class="btn-link" href="${e.url}" target="_blank"><button>Open Ticket Page</button></a>` : ""}
+              </div>
+            </div>
+          `;
+          box.appendChild(el);
+        });
+      }
+
+      document.getElementById("locate").addEventListener("click", useMyLocation);
+      document.getElementById("go").addEventListener("click", findEvents);
+      loadArtists();
+    </script>
+  </body>
+</html>
