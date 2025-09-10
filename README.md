@@ -73,6 +73,8 @@ Server runs on:
 5. Open Ticketmaster links directly to purchase tickets.
 
 **📂 Project Structure**
+
+
 src/
 
   server.ts       # Express server, routes, API
