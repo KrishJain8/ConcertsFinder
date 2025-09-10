@@ -27,8 +27,9 @@ It pulls your Top Artists, Followed Artists, and Liked Songs from Spotify, then 
 **🚀 Getting Started**
 
 **1. Clone the Repo**
-git clone https://github.com/<your-username>/concerts-finder.git
-cd concerts-finder
+
+    git clone https://github.com/<your-username>/concerts-finder.git
+    cd concerts-finder
 
 **2. Install Dependencies**
 npm install
@@ -37,14 +38,16 @@ npm install
 
 Create a .env file in the project root:
 
-SESSION_SECRET=your_random_secret
-
-SPOTIFY_CLIENT_ID=your_spotify_client_id
-SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
-SPOTIFY_REDIRECT_URI=http://127.0.0.1:3000/callback
-SPOTIFY_SCOPES=user-top-read user-library-read user-follow-read user-read-recently-played
-
-TICKETMASTER_API_KEY=your_ticketmaster_api_key
+    SESSION_SECRET=your_random_secret
+    
+    SPOTIFY_CLIENT_ID=your_spotify_client_id
+    SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
+    
+    SPOTIFY_REDIRECT_URI=http://127.0.0.1:3000/callback
+    
+    SPOTIFY_SCOPES=user-top-read user-library-read user-follow-read user-read-recently-played
+    
+    TICKETMASTER_API_KEY=your_ticketmaster_api_key
 
 _Optional: blacklist artists (comma-separated)_
 
@@ -54,7 +57,8 @@ Get a Ticketmaster API key at Ticketmaster Developer Portal
 .
 
 **4. Run the App**
-npm run dev
+
+    npm run dev
 
 
 Server runs on:
@@ -75,21 +79,21 @@ Server runs on:
 **📂 Project Structure**
 
 
-src/
+    src/
 
-  server.ts       # Express server, routes, API
+      server.ts       # Express server, routes, API
   
-  spotify.ts      # Spotify OAuth + API helpers
+      spotify.ts      # Spotify OAuth + API helpers
   
-  ticketmaster.ts # Ticketmaster API helpers
+      ticketmaster.ts # Ticketmaster API helpers
   
-  rank.ts         # Event scoring + ranking logic
+      rank.ts         # Event scoring + ranking logic
   
-public/
+    public/
 
-  index.html      # UI (artists sidebar + events list)
+      index.html      # UI (artists sidebar + events list)
   
-  .env              # Local config (not committed)
+    .env              # Local config (not committed)
   
 
 **🛠️ Tech Stack**
