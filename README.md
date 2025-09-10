@@ -1,55 +1,102 @@
-# ConcertsFinder
-Concerts Finder — High-Level README
+🎵 Concerts Finder
 
-Find upcoming concerts for the artists you actually listen to.
-This app connects your Spotify account, builds a personal artist list (with a strong emphasis on your Liked Songs), and then searches Ticketmaster for real performer matches near you.
+A web app that helps you discover upcoming concerts near you by combining your Spotify listening habits with the Ticketmaster Discovery API.
 
-🔮 What it does (at a glance)
+It pulls your Top Artists, Followed Artists, and Liked Songs from Spotify, then matches them with real Ticketmaster events happening around your location.
 
-Log in with Spotify → securely reads your:
+✨ Features
 
-Liked Songs (Saved Tracks), Top Artists, and Followed Artists
+- Spotify OAuth Login – securely log in with your Spotify account.
 
-Finds concerts via Ticketmaster by performer (attraction), not by title text
+- Artist Signals – fetches:
 
-Multi-word names (e.g., “Chris Brown”) also match things like “Chris Brown & Friends”
+-   Liked Songs (Saved Tracks)
 
-One-word names stay strict (so “Drake” ≠ “Drake White”)
+-   Top Artists (short/medium/long term)
 
-Ranks results for you: Liked > Top > Followed, with gentle nudges for date & distance
+-   Followed Artists
 
-Simple UI:
+Event Matching – queries Ticketmaster by artist name or attraction ID.
 
-Left: your artists (Top/Followed)
+Ranking System – prioritizes events with your liked artists, then top, then followed.
 
-Right: upcoming events
+Location Aware – search concerts near you with adjustable radius.
 
-Top header + “Use my location” button (dark, Spotify-style theme)
+Clean UI – sidebar of your artists + main feed of upcoming events.
 
-🧠 How it works (high level)
+🚀 Getting Started
+1. Clone the Repo
+git clone https://github.com/<your-username>/concerts-finder.git
+cd concerts-finder
 
-Spotify OAuth (Authorization Code Flow) → you grant read-only access to library/profile endpoints.
+2. Install Dependencies
+npm install
 
-Artist pool is built only from your history (no “related”/random bands):
+3. Environment Variables
 
-Liked Songs → Top Artists (all time ranges) → Followed Artists
+Create a .env file in the project root:
 
-Lists are interleaved so long-tail artists you barely listened to still get considered.
+SESSION_SECRET=your_random_secret
 
-Ticketmaster Discovery API searches for future events near your coordinates.
+SPOTIFY_CLIENT_ID=your_spotify_client_id
+SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
+SPOTIFY_REDIRECT_URI=http://127.0.0.1:3000/callback
+SPOTIFY_SCOPES=user-top-read user-library-read user-follow-read user-read-recently-played
 
-Prefers exact attraction IDs; otherwise exact (or phrase-contains for multi-word) performer names.
+TICKETMASTER_API_KEY=your_ticketmaster_api_key
 
-Filters obvious tribute/“Music of …” programs unless it’s the official performer ID.
+# Optional: blacklist artists (comma-separated)
+IGNORE_ARTISTS=Drake White,Some Band
 
-Ranking pushes your Liked-Song artists to the top; date/location help break ties.
 
-🧰 What you need
+You can generate Spotify credentials at Spotify Developer Dashboard
+.
+Get a Ticketmaster API key at Ticketmaster Developer Portal
+.
 
-Node 18+ (Node 20/22 recommended)
+4. Run the App
+npm run dev
 
-Spotify Developer app (Web API)
 
-Ticketmaster Discovery API Consumer Key
+Server runs on:
+👉 http://127.0.0.1:3000
 
-You’ll keep secrets in a local .env file (not committed). A published .env.example shows the format.
+🖥️ Usage
+
+Open the app and click Login with Spotify.
+
+Click Use My Location to auto-fill latitude/longitude.
+
+Adjust radius (default: 50 miles).
+
+Hit Find Events to see upcoming concerts.
+
+Open Ticketmaster links directly to purchase tickets.
+
+📂 Project Structure
+src/
+  server.ts       # Express server, routes, API
+  spotify.ts      # Spotify OAuth + API helpers
+  ticketmaster.ts # Ticketmaster API helpers
+  rank.ts         # Event scoring + ranking logic
+public/
+  index.html      # UI (artists sidebar + events list)
+.env              # Local config (not committed)
+
+🛠️ Tech Stack
+
+Node.js + Express – backend server
+
+TypeScript – type safety
+
+cookie-session – session management
+
+Spotify Web API – music signals
+
+Ticketmaster Discovery API – concert data
+
+Vanilla JS + HTML/CSS – lightweight frontend
+
+⚖️ License
+
+MIT License – feel free to fork and build on this project.
