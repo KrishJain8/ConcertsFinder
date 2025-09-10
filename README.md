@@ -74,13 +74,21 @@ Server runs on:
 
 **📂 Project Structure**
 src/
+
   server.ts       # Express server, routes, API
+  
   spotify.ts      # Spotify OAuth + API helpers
+  
   ticketmaster.ts # Ticketmaster API helpers
+  
   rank.ts         # Event scoring + ranking logic
+  
 public/
+
   index.html      # UI (artists sidebar + events list)
-.env              # Local config (not committed)
+  
+  .env              # Local config (not committed)
+  
 
 **🛠️ Tech Stack**
 
